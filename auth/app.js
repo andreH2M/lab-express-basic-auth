@@ -8,11 +8,8 @@ const logger = require('morgan');
 const sassMiddleware = require('node-sass-middleware');
 const serveFavicon = require('serve-favicon');
 
-const expressSession = require('express-session');
 const indexRouter = require('./routes/index');
-const MongoStore = require('connect-mongo') (expressSession);
-const mongoose = require('mongoose');
-const authentication = require('./routes/authentication');
+const usersRouter = require('./routes/user');
 
 const app = express();
 
@@ -24,18 +21,6 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-
-app.use(expressSession({
-  secret: process.env.SECRET_SESSION,
-  cookie: {maxAge: 60*60*24*1000},
-  resave: true, 
-  saveUninitialized: false,
-  store: new MongoStore({
-    mongooseConnection: mongoose.connection,
-    ttl: 24*60*60
-  })
-}));
-
 app.use(serveFavicon(join(__dirname, 'public/images', 'favicon.ico')));
 app.use(express.static(join(__dirname, 'public')));
 app.use(sassMiddleware({
@@ -46,7 +31,7 @@ app.use(sassMiddleware({
 }));
 
 app.use('/', indexRouter);
-app.use('/', authentication);
+app.use('/user', usersRouter);
 
 // Catch missing routes and forward to error handler
 app.use((req, res, next) => {
